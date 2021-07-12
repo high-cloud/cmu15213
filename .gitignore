@@ -1,0 +1,4 @@
+*.tar
+.config/
+.local/
+.vscode-server/
