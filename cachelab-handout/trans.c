@@ -6,7 +6,7 @@
  *
  * A transpose function is evaluated by counting the number of misses
  * on a 1KB direct mapped cache with a block size of 32 bytes.
- */ 
+ */
 #include <stdio.h>
 #include "cachelab.h"
 
@@ -22,12 +22,115 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 char transpose_submit_desc[] = "Transpose submission";
 void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 {
+    if (M == 32)
+    {
+        int a1,a2,a3,a4,a5,a6,a7,a8;
+        for (int ii = 0; ii < 32; ii += 8)
+            for (int jj = 0; jj < 32; jj += 8)
+                for (int i = ii; i < ii + 8; ++i)
+                {
+                    a1=A[i][jj];
+                    a2=A[i][jj+1];
+                    a3=A[i][jj+2];
+                    a4=A[i][jj+3];
+                    a5=A[i][jj+4];
+                    a6=A[i][jj+5];
+                    a7=A[i][jj+6];
+                    a8=A[i][jj+7];
+
+                    B[jj][i]=a1;
+                    B[jj+1][i]=a2;
+                    B[jj+2][i]=a3;
+                    B[jj+3][i]=a4;
+                    B[jj+4][i]=a5;
+                    B[jj+5][i]=a6;
+                    B[jj+6][i]=a7;
+                    B[jj+7][i]=a8;
+                }
+    }
+
+    if(M==64)
+    {
+        int a1,a2,a3,a4,a5,a6,a7,a8;
+        for (int ii = 0; ii < 64; ii += 8)
+            for (int jj = 0; jj < 64; jj += 8)
+            {
+                for (int i = ii; i < ii+4 ; ++i)
+                {
+                    a1=A[i][jj];
+                    a2=A[i][jj+1];
+                    a3=A[i][jj+2];
+                    a4=A[i][jj+3];
+                    a5=A[i][jj+4];
+                    a6=A[i][jj+5];
+                    a7=A[i][jj+6];
+                    a8=A[i][jj+7];
+
+                    B[jj][i]=a1;
+                    B[jj+1][i]=a2;
+                    B[jj+2][i]=a3;
+                    B[jj+3][i]=a4;
+                    B[jj][i+4]=a5;
+                    B[jj+1][i+4]=a6;
+                    B[jj+2][i+4]=a7;
+                    B[jj+3][i+4]=a8;
+
+                }
+
+                for (int i = ii+4; i < ii+8 ; ++i)
+                {
+                    a1=A[i][jj];
+                    a2=A[i][jj+1];
+                    a3=A[i][jj+2];
+                    a4=A[i][jj+3];
+                    a5=A[i][jj+4];
+                    a6=A[i][jj+5];
+                    a7=A[i][jj+6];
+                    a8=A[i][jj+7];
+
+                    B[jj+4][i-4]=a1;
+                    B[jj+5][i-4]=a2;
+                    B[jj+6][i-4]=a3;
+                    B[jj+7][i-4]=a4;
+                    B[jj+4][i]=a5;
+                    B[jj+5][i]=a6;
+                    B[jj+6][i]=a7;
+                    B[jj+7][i]=a8;
+
+                }
+
+                for(int j=jj;j<jj+4;++j)
+                {
+                    a1=B[j][ii+4];
+                    a2=B[j][ii+5];
+                    a3=B[j][ii+6];
+                    a4=B[j][ii+7];
+
+                    a5=B[j+4][ii];
+                    a6=B[j+4][ii];
+                    a7=B[j+4][ii];
+                    a8=B[j+4][ii];
+
+                    B[j+4][ii]=a1;
+                    B[j+4][ii+1]=a2;
+                    B[j+4][ii+2]=a3;
+                    B[j+4][ii+3]=a4;
+
+                    B[j][ii+4]=a5;
+                    B[j][ii+5]=a6;
+                    B[j][ii+6]=a7;
+                    B[j][ii+7]=a8;
+                    
+                }
+
+            }
+    }
 }
 
 /* 
  * You can define additional transpose functions below. We've defined
  * a simple one below to help you get started. 
- */ 
+ */
 
 /* 
  * trans - A simple baseline transpose function, not optimized for the cache.
@@ -37,13 +140,14 @@ void trans(int M, int N, int A[N][M], int B[M][N])
 {
     int i, j, tmp;
 
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < M; j++) {
+    for (i = 0; i < N; i++)
+    {
+        for (j = 0; j < M; j++)
+        {
             tmp = A[i][j];
             B[j][i] = tmp;
         }
-    }    
-
+    }
 }
 
 /*
@@ -56,11 +160,10 @@ void trans(int M, int N, int A[N][M], int B[M][N])
 void registerFunctions()
 {
     /* Register your solution function */
-    registerTransFunction(transpose_submit, transpose_submit_desc); 
+    registerTransFunction(transpose_submit, transpose_submit_desc);
 
-    /* Register any additional transpose functions */
-    registerTransFunction(trans, trans_desc); 
-
+    // /* Register any additional transpose functions */
+    // registerTransFunction(trans, trans_desc);
 }
 
 /* 
@@ -72,13 +175,15 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N])
 {
     int i, j;
 
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < M; ++j) {
-            if (A[i][j] != B[j][i]) {
+    for (i = 0; i < N; i++)
+    {
+        for (j = 0; j < M; ++j)
+        {
+            if (A[i][j] != B[j][i])
+            {
                 return 0;
             }
         }
     }
     return 1;
 }
-
