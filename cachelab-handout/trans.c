@@ -55,6 +55,7 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
         for (int ii = 0; ii < 64; ii += 8)
             for (int jj = 0; jj < 64; jj += 8)
             {
+                //first 4 row
                 for (int i = ii; i < ii+4 ; ++i)
                 {
                     a1=A[i][jj];
@@ -77,53 +78,50 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 
                 }
 
-                for (int i = ii+4; i < ii+8 ; ++i)
+
+                for(int i=0;i<4;++i)
                 {
-                    a1=A[i][jj];
-                    a2=A[i][jj+1];
-                    a3=A[i][jj+2];
-                    a4=A[i][jj+3];
-                    a5=A[i][jj+4];
-                    a6=A[i][jj+5];
-                    a7=A[i][jj+6];
-                    a8=A[i][jj+7];
+                    a1=B[jj+i][ii+4];
+                    a2=B[jj+i][ii+5];
+                    a3=B[jj+i][ii+6];
+                    a4=B[jj+i][ii+7];
 
-                    B[jj+4][i-4]=a1;
-                    B[jj+5][i-4]=a2;
-                    B[jj+6][i-4]=a3;
-                    B[jj+7][i-4]=a4;
-                    B[jj+4][i]=a5;
-                    B[jj+5][i]=a6;
-                    B[jj+6][i]=a7;
-                    B[jj+7][i]=a8;
+                    a5=A[ii+4][jj+i];
+                    a6=A[ii+5][jj+i];
+                    a7=A[ii+6][jj+i];
+                    a8=A[ii+7][jj+i];
 
-                }
+                    B[jj+i][ii+4]=a5;
+                    B[jj+i][ii+5]=a6;
+                    B[jj+i][ii+6]=a7;
+                    B[jj+i][ii+7]=a8;
 
-                for(int j=jj;j<jj+4;++j)
-                {
-                    a1=B[j][ii+4];
-                    a2=B[j][ii+5];
-                    a3=B[j][ii+6];
-                    a4=B[j][ii+7];
-
-                    a5=B[j+4][ii];
-                    a6=B[j+4][ii];
-                    a7=B[j+4][ii];
-                    a8=B[j+4][ii];
-
-                    B[j+4][ii]=a1;
-                    B[j+4][ii+1]=a2;
-                    B[j+4][ii+2]=a3;
-                    B[j+4][ii+3]=a4;
-
-                    B[j][ii+4]=a5;
-                    B[j][ii+5]=a6;
-                    B[j][ii+6]=a7;
-                    B[j][ii+7]=a8;
+                    B[jj+4+i][ii]=a1;
+                    B[jj+i+4][ii+1]=a2;
+                    B[jj+i+4][ii+2]=a3;
+                    B[jj+i+4][ii+3]=a4;
                     
                 }
 
+                for(int i=ii+4;i<ii+8;++i)
+                    for(int j=jj+4;j<jj+8;++j)
+                    {
+                        B[j][i]=A[i][j];
+                    }
             }
+    }
+    if(M==61)
+    {
+        int bsize=20;
+        for (int ii = 0; ii < M; ii += bsize)
+            for (int jj = 0; jj < N; jj += bsize)
+                for (int i = ii; i < ii + bsize && i<M; ++i)
+                {
+                    for (int j=jj;j<jj+bsize && j<N;++j)
+                    {
+                        B[i][j]=A[j][i];
+                    }
+                }
     }
 }
 
